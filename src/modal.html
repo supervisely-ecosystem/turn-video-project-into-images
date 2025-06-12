@@ -9,13 +9,6 @@
         </el-select>
     </sly-field>
 
-    <sly-field title="Batch size">
-        <sly-icon slot="icon" :options="{ color: '#4977ff', bgColor: '#ddf2ff', rounded: false }">
-            <i class="zmdi zmdi-view-comfy"></i>
-        </sly-icon>
-        <el-input-number v-model="state.batchSize" :min="32" :max="2048"></el-input-number>
-    </sly-field>
-
     <sly-field title="Datasets">
         <sly-icon slot="icon" :options="{ color: '#2cd26e', bgColor: '#d8f8e7', rounded: false }">
             <i class="zmdi zmdi-collection-folder-image"></i>
@@ -27,6 +20,10 @@
             <sly-select-dataset :project-id="context.projectId" :datasets.sync="state.selectedDatasets"
                                 :options="{multiple: true}"></sly-select-dataset>
         </div>
+
+        <el-checkbox v-model="state.includeNestedDatasets">
+            Include nested datasets
+        </el-checkbox>
     </sly-field>
 
     <el-checkbox v-model="state.sampleResultFrames">
@@ -41,4 +38,9 @@
             <el-input-number v-model="state.framesStep" :min="1"></el-input-number>
         </sly-field>
     </div>
+
+    <el-checkbox v-if="context.projectId" v-model="state.run" style="margin-top: 10px; margin-left: 0px;">
+        <b style="font-weight: 500; padding: 0; font-size: 14px;">Run transformation</b>
+        <span style="color: #999; font-size: 12px;">(if unchecked, only the configuration will be saved)</span>
+    </el-checkbox>
 </div>

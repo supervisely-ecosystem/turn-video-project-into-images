@@ -1,166 +1,38 @@
-from collections import defaultdict
-from time import time
-
+import threading
+from supervisely.app.widgets import Sampling
 import supervisely as sly
-from supervisely.video_annotation.key_id_map import KeyIdMap
-
-import functions as f
-
-import globals as g
-import workflow as w
+import src.globals as g
+import src.workflow as wf
 
 
-def turn_into_images_project(api: sly.Api):
-    res_project_name = f"{g.project.name}(images)"
-    w.workflow_input(api, g.project.id)
-    dst_project = api.project.create(
-        g.workspace_id,
-        res_project_name,
-        type=sly.ProjectType.IMAGES,
-        change_name_if_conflict=True,
-    )
-    api.project.update_meta(dst_project.id, g.meta.to_json())
-    sly.logger.info(f"Project meta for {dst_project.name} has been updated.")
+sampling_widget = Sampling(
+    g.project_id,
+)
 
-    key_id_map = KeyIdMap()
-    for dataset_name in g.selected_datasets:
-        dataset = api.dataset.get_info_by_name(g.project_id, dataset_name)
-        dst_dataset = api.dataset.create(dst_project.id, dataset.name)
-        videos = api.video.get_list(dataset.id)
-        for batch in sly.batched(videos):
-            for video_info in batch:
-                general_time = time()
-                ann_info = api.video.annotation.download(video_info.id)
-                ann = sly.VideoAnnotation.from_json(ann_info, g.meta, key_id_map, skip_corrupted=True)
-                if (
-                    g.options == "annotated"
-                    and len(ann.tags) == 0
-                    and len(ann.frames) == 0
-                ):
-                    sly.logger.warn(
-                        f"Video {video_info.name} annotation is empty in Dataset {dataset_name}"
-                    )
-                    continue
 
-                frames_to_convert = []
-                video_props = []
-                video_frame_tags = defaultdict(list)
-                f.convert_tags(
-                    ann.tags, video_props, video_frame_tags, frames_to_convert
-                )
-                object_frame_tags = defaultdict(lambda: defaultdict(list))
-                object_props = defaultdict(list)
-                for vobject in ann.objects:
-                    f.convert_tags(
-                        vobject.tags,
-                        object_props[vobject.key()],
-                        object_frame_tags[vobject.key()],
-                        frames_to_convert,
-                    )
-                    vobject_id = key_id_map.get_object_id(vobject.key())
-                    f.add_object_id_tag(vobject_id, object_props[vobject.key()])
-                if g.options == "annotated":
-                    frames_to_convert.extend(list(ann.frames.keys()))
-                    frames_to_convert = list(dict.fromkeys(frames_to_convert))
-                    frames_to_convert.sort()
-                else:
-                    frames_to_convert = list(range(0, video_info.frames_count))
+def _init_options():
+    sampling_widget.step = g.frames_step
+    sampling_widget.only_annotated = g.only_annotated
+    sampling_widget.include_nested_datasets = g.include_nested_datasets
+    if g.all_datasets:
+        sampling_widget.selected_all_datasets = True
+    else:
+        sampling_widget.selected_datasets_ids = g.selected_datasets_ids
 
-                if g.sample_result_frames:
-                    if g.options == "all":
-                        frames_to_convert = frames_to_convert[:: g.frames_step]
-                    else:
-                        frames_to_convert = f.calc_frame_step(
-                            frames_to_convert=frames_to_convert,
-                            frame_step=g.frames_step,
-                        )
 
-                progress = sly.Progress(
-                    "Processing video frames: {!r}".format(video_info.name),
-                    len(frames_to_convert),
-                )
+def _run():
+    sampling_widget.run_button.loading = True
+    Sampling.run(sampling_widget)
+    wf.workflow_input(g.api, sampling_widget.selected_project_id)
+    wf.workflow_output(g.api, sampling_widget.selected_project_id)
+    sampling_widget.run_button.loading = False
+    app.shutdown()
 
-                for batch_index, batch_frames in enumerate(
-                    sly.batched(frames_to_convert, batch_size=g.batch_size)
-                ):
-                    metas = []
-                    anns = []
-                    local_time = time()
-                    images_names, images = f.get_frames_from_api(
-                        api, video_info.id, video_info.name, batch_frames, dataset_name
-                    )
-                    sly.logger.debug(
-                        f"extracted {len(batch_frames)} by {time() - local_time} seconds"
-                    )
 
-                    for idx, frame_index in enumerate(batch_frames):
-                        metas.append(
-                            {
-                                "video_id": video_info.id,
-                                "video_name": video_info.name,
-                                "frame_index": frame_index,
-                                "video_dataset_id": video_info.dataset_id,
-                                "video_dataset_name": dataset.name,
-                                "video_project_id": g.project.id,
-                                "video_project_name": g.project.name,
-                            }
-                        )
+sampling_widget.run = _run
+_init_options()
 
-                        labels = []
-                        frame_annotation = ann.frames.get(frame_index)
-                        if frame_annotation is not None:
-                            for figure in frame_annotation.figures:
-                                tags_to_assign = object_props[
-                                    figure.parent_object.key()
-                                ].copy()
-                                tags_to_assign.extend(
-                                    object_frame_tags[figure.parent_object.key()]
-                                    .get(frame_index, [])
-                                    .copy()
-                                )
-                                cur_label = sly.Label(
-                                    figure.geometry,
-                                    figure.parent_object.obj_class,
-                                    sly.TagCollection(tags_to_assign),
-                                )
-                                if figure.track_id is not None:
-                                    autotrack_tag = sly.Tag(g.autotracked_tag_meta)
-                                    cur_label = cur_label.add_tag(autotrack_tag)
+app = sly.Application(sampling_widget)
 
-                                labels.append(cur_label)
-
-                        img_tags = (
-                            video_props.copy()
-                            + video_frame_tags.get(frame_index, []).copy()
-                        )
-
-                        frame_np = images[idx]
-                        height, width, _ = frame_np.shape
-                        img_size = (height, width)
-
-                        anns.append(
-                            sly.Annotation(
-                                img_size,
-                                labels=labels,
-                                img_tags=sly.TagCollection(img_tags),
-                            )
-                        )
-
-                    f.upload_frames(
-                        api,
-                        dst_dataset.id,
-                        images_names,
-                        images,
-                        anns,
-                        metas,
-                        f"{batch_index}/{int(len(frames_to_convert) / g.batch_size)}",
-                    )
-                    progress.iters_done_report(len(images_names))
-
-                sly.logger.info(
-                    f"video {video_info.name} converted in {time() - general_time} seconds"
-                )
-    w.workflow_output(api, dst_project.id)
-
-if __name__ == "__main__":
-    turn_into_images_project(g.api)
+if g.run:
+    threading.Thread(target=sampling_widget.run, daemon=True).start()
