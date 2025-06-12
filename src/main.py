@@ -1,3 +1,4 @@
+import threading
 from supervisely.app.widgets import Sampling
 import supervisely as sly
 import src.globals as g
@@ -31,4 +32,4 @@ _init_options()
 app = sly.Application(sampling_widget)
 
 if g.run:
-    sampling_widget.run()
+    threading.Thread(target=sampling_widget.run, daemon=True).start()
