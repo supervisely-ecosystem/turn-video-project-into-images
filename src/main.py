@@ -1,7 +1,7 @@
 from supervisely.app.widgets import Sampling
 import supervisely as sly
-import globals as g
-import workflow as wf
+import src.globals as g
+import src.workflow as wf
 
 
 sampling_widget = Sampling(
