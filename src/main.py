@@ -19,10 +19,10 @@ def _init_options():
         sampling_widget.selected_datasets_ids = g.selected_datasets_ids
 
 
-def _run(self):
-    Sampling.run(self)
-    wf.workflow_input(g.api, self.selected_project_id)
-    wf.workflow_output(g.api, self.selected_project_id)
+def _run():
+    Sampling.run(sampling_widget)
+    wf.workflow_input(g.api, sampling_widget.selected_project_id)
+    wf.workflow_output(g.api, sampling_widget.selected_project_id)
 
 
 sampling_widget.run = _run
