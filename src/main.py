@@ -21,9 +21,12 @@ def _init_options():
 
 
 def _run():
+    sampling_widget.run_button.loading = True
     Sampling.run(sampling_widget)
     wf.workflow_input(g.api, sampling_widget.selected_project_id)
     wf.workflow_output(g.api, sampling_widget.selected_project_id)
+    sampling_widget.run_button.loading = False
+    app.shutdown()
 
 
 sampling_widget.run = _run
