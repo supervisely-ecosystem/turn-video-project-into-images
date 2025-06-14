@@ -18,9 +18,10 @@
         "Options": "all",
         "selectedDatasets": [],
         "allDatasets": true,
-        "batchSize": 32,
+        "includeNestedDatasets": false,
         "sampleResultFrames": false,
         "framesStep": 10,
+        "outputProjectId": null,
         "run": true
     },
     "task_location": "workspace_tasks",
