@@ -18,6 +18,8 @@ def _init_options():
         sampling_widget.selected_all_datasets = True
     else:
         sampling_widget.selected_datasets_ids = g.selected_datasets_ids
+    if g.output_project_id:
+        sampling_widget.selected_output_project_id = g.output_project_id
 
 
 def _run():

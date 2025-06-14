@@ -51,6 +51,8 @@ include_nested_datasets = (os.getenv("modal.state.includeNestedDatasets") or "fa
     "t",
 )
 
+output_project_id = os.getenv("modal.state.outputProjectId", None)
+
 run = os.getenv("modal.state.run", "false").lower() in ("true", "1", "t")
 
 # endregion
