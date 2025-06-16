@@ -21,6 +21,7 @@
         "includeNestedDatasets": false,
         "sampleResultFrames": false,
         "framesStep": 10,
+        "resize": [],
         "outputProjectId": null,
         "run": true
     },
