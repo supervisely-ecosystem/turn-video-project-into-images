@@ -50,6 +50,9 @@ include_nested_datasets = (os.getenv("modal.state.includeNestedDatasets") or "fa
     "1",
     "t",
 )
+resize = selected_datasets = json.loads(os.environ["modal.state.resize"].replace("'", '"'))
+if not resize:
+    resize = None
 
 output_project_id = os.getenv("modal.state.outputProjectId", None)
 

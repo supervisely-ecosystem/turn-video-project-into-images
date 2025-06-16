@@ -14,6 +14,7 @@ def _init_options():
     sampling_widget.step = g.frames_step
     sampling_widget.only_annotated = g.only_annotated
     sampling_widget.include_nested_datasets = g.include_nested_datasets
+    sampling_widget.resize = g.resize
     if g.all_datasets:
         sampling_widget.selected_all_datasets = True
     else:
