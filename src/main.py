@@ -23,23 +23,25 @@ def _init_options():
         sampling_widget.selected_output_project_id = g.output_project_id
 
 
-def _run():
+def run_sampling():
+    Sampling.run(sampling_widget)
+    wf.workflow_input(g.api, sampling_widget.selected_project_id)
+    wf.workflow_output(g.api, sampling_widget.selected_project_id)
+
+
+def run_and_finish_app():
     try:
-        sampling_widget.run_button.loading = True
-        Sampling.run(sampling_widget)
-        wf.workflow_input(g.api, sampling_widget.selected_project_id)
-        wf.workflow_output(g.api, sampling_widget.selected_project_id)
-        sampling_widget.run_button.loading = False
+        run_sampling()
     except Exception as e:
         g.api.task.update_status(g.task_id, g.api.task.Status.ERROR)
     finally:
         app.shutdown()
 
 
-sampling_widget.run = _run
+sampling_widget.run = run_sampling
 _init_options()
 
 app = sly.Application(sampling_widget)
 
 if g.run:
-    threading.Thread(target=sampling_widget.run, daemon=True).start()
+    threading.Thread(target=run_and_finish_app, daemon=True).start()
