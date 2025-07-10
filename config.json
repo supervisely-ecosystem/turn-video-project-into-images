@@ -21,7 +21,8 @@
         "batchSize": 32,
         "sampleResultFrames": false,
         "framesStep": 10,
-        "run": true
+        "run": true,
+        "copyAnnotations": true
     },
     "task_location": "workspace_tasks",
     "icon": "https://i.imgur.com/P6BjsxA.png",
