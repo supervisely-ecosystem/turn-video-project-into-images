@@ -7,6 +7,7 @@ import src.workflow as wf
 
 sampling_widget = Sampling(
     g.project_id,
+    copy_annotations=g.copy_annotations,
 )
 
 

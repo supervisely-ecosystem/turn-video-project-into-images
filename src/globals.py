@@ -76,3 +76,5 @@ if options == "annotated" and len(meta.obj_classes) == 0 and len(meta.tag_metas)
     raise ValueError(
         "Nothing to convert, there are no tags and classes in project {!r}".format(project.name)
     )
+
+copy_annotations = os.getenv("modal.state.copyAnnotations", "true").lower() in ("true", "1", "t")

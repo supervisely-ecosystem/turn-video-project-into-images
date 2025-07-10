@@ -43,4 +43,8 @@
         <b style="font-weight: 500; padding: 0; font-size: 14px;">Run transformation</b>
         <span style="color: #999; font-size: 12px;">(if unchecked, only the configuration will be saved)</span>
     </el-checkbox>
+
+    <el-checkbox v-if="context.projectId" v-model="state.copyAnnotations" style="margin-top: 10px; margin-left: 0px;">
+        <b style="font-weight: 500; padding: 0; font-size: 14px;">Copy annotations</b>
+    </el-checkbox>
 </div>
