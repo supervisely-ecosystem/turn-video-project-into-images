@@ -10,7 +10,7 @@
 </p>
 
 
-[![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](https://ecosystem.supervisely.com/apps/turn-video-project-into-images)
+[![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](../../../../supervisely-ecosystem/turn-video-project-into-images)
 [![](https://img.shields.io/badge/slack-chat-green.svg?logo=slack)](https://supervisely.com/slack)
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/supervisely-ecosystem/turn-video-project-into-images)
 [![views](https://app.supervisely.com/img/badges/views/supervisely-ecosystem/turn-video-project-into-images.png)](https://supervisely.com)
@@ -23,8 +23,8 @@
 Transforms supervisely **videos** project to supervisely **images** project. 
 
 Application key points:  
-- Backward compatible with [Images project to videos project](https://ecosystem.supervisely.com/apps/images-project-to-videos-project)
-- Tag named `object_id` is used for backward compatibility with [Images project to videos project](https://ecosystem.supervisely.com/apps/images-project-to-videos-project)
+- Backward compatible with [Images project to videos project](../../../../supervisely-ecosystem/images-project-to-videos-project)
+- Tag named `object_id` is used for backward compatibility with [Images project to videos project](../../../../supervisely-ecosystem/images-project-to-videos-project)
 - Dataset structure and names remain unchanged
 - Result project name format: `"{original_project_name}(images)"`
 - Image name format: `"{video_name}_frame_{:05d}.jpg", for example "my_video_frame_00077.jpg"`
@@ -34,7 +34,7 @@ Application key points:
 
 # How To Use 
 
-1. Add [Videos project to images project](https://ecosystem.supervisely.com/apps/turn-video-project-into-images) to your team from Ecosystem.
+1. Add [Videos project to images project](../../../../supervisely-ecosystem/turn-video-project-into-images) to your team from Ecosystem.
 
 <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/turn-video-project-into-images" src="https://i.imgur.com/9gUzdYM.png" width="350px" style='padding-bottom: 20px'/>  
 
