@@ -9,7 +9,7 @@
         "data operations"
     ],
     "description": "Creates images project from video project",
-    "docker_image": "supervisely/data-operations:6.73.461",
+    "docker_image": "supervisely/data-operations:6.73.463",
     "min_instance_version": "6.15.2",
     "entrypoint": "python -m uvicorn src.main:app --host 0.0.0.0 --port 8000",
     "port": 8000,
