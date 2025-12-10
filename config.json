@@ -1,37 +1,37 @@
 {
-    "name": "Videos project to images project",
-    "type": "app",
-    "version": "2.0.0",
-    "categories": [
-        "images",
-        "videos",
-        "modalities",
-        "data operations"
-    ],
-    "description": "Creates images project from video project",
-    "docker_image": "supervisely/data-operations:6.73.463",
-    "min_instance_version": "6.15.2",
-    "entrypoint": "python -m uvicorn src.main:app --host 0.0.0.0 --port 8000",
-    "port": 8000,
-    "modal_template": "src/modal.html",
-    "modal_template_state": {
-        "Options": "all",
-        "selectedDatasets": [],
-        "allDatasets": true,
-        "batchSize": 32,
-        "sampleResultFrames": false,
-        "framesStep": 10,
-        "run": true,
-        "copyAnnotations": true
-    },
-    "task_location": "workspace_tasks",
-    "icon": "https://i.imgur.com/P6BjsxA.png",
-    "icon_background": "#FFFFFF",
-    "headless": true,
-    "context_menu": {
-        "target": [
-            "videos_project"
-        ]
-    },
-    "poster": "https://user-images.githubusercontent.com/106374579/182870013-5def504f-ba85-41b2-af88-bc9e3c9ca4e6.png"
+  "name": "Videos project to images project",
+  "type": "app",
+  "version": "2.0.0",
+  "categories": [
+    "images",
+    "videos",
+    "modalities",
+    "data operations"
+  ],
+  "description": "Creates images project from video project",
+  "docker_image": "supervisely/data-operations:6.73.483",
+  "min_instance_version": "6.15.35",
+  "entrypoint": "python -m uvicorn src.main:app --host 0.0.0.0 --port 8000",
+  "port": 8000,
+  "modal_template": "src/modal.html",
+  "modal_template_state": {
+    "Options": "all",
+    "selectedDatasets": [],
+    "allDatasets": true,
+    "batchSize": 32,
+    "sampleResultFrames": false,
+    "framesStep": 10,
+    "run": true,
+    "copyAnnotations": true
+  },
+  "task_location": "workspace_tasks",
+  "icon": "https://i.imgur.com/P6BjsxA.png",
+  "icon_background": "#FFFFFF",
+  "headless": true,
+  "context_menu": {
+    "target": [
+      "videos_project"
+    ]
+  },
+  "poster": "https://user-images.githubusercontent.com/106374579/182870013-5def504f-ba85-41b2-af88-bc9e3c9ca4e6.png"
 }
