@@ -1,9 +1,9 @@
-# This module contains the functions that are used to configure the input and output of the workflow for the current app.
+# Workflow lineage (input and output) registered by the app.
 
 import supervisely as sly
 
 
-def workflow_input(api: sly.Api, project_id: int):    
+def workflow_input(api: sly.Api, project_id: int):
     api.app.workflow.add_input_project(int(project_id))
     sly.logger.debug(f"Workflow: Input project - {project_id}")
 

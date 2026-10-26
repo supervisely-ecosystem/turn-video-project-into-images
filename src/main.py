@@ -1,9 +1,10 @@
 import threading
-from supervisely.app.widgets import Sampling
+
 import supervisely as sly
+from supervisely.app.widgets import Sampling
+
 import src.globals as g
 import src.workflow as wf
-
 
 sampling_widget = Sampling(
     g.project_id,

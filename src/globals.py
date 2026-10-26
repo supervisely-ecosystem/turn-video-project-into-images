@@ -1,10 +1,10 @@
 import json
 import os
-from distutils.util import strtobool
-from typing import Tuple
+
 import supervisely as sly
 from dotenv import load_dotenv
-from supervisely.io.fs import mkdir
+
+from src.utils import strtobool
 
 if sly.is_development():
     load_dotenv("local.env")
@@ -20,14 +20,12 @@ if sly.is_development():
     # task_id = 0
 
 # endregion
-sly.logger.info(
-    f"Api initialized. Team: {team_id}. Workspace: {workspace_id}. Project: {project_id}"
-)
+sly.logger.info(f"Api initialized. Team: {team_id}. Workspace: {workspace_id}. Project: {project_id}")
 
 api = sly.Api.from_env()
 
 # region modalvars
-sample_result_frames = bool(strtobool(os.getenv("modal.state.sampleResultFrames")))
+sample_result_frames = strtobool(os.getenv("modal.state.sampleResultFrames"))
 if sample_result_frames:
     frames_step = int(os.environ["modal.state.framesStep"])
 else:
@@ -63,18 +61,14 @@ sly.logger.info(
 project = api.project.get_info_by_id(project_id)
 sly.logger.info(f"Working with project {project.name}...")
 if project is None:
-    raise RuntimeError("Project {!r} not found".format(project.name))
+    raise RuntimeError(f"Project {project.name!r} not found")
 if project.type != str(sly.ProjectType.VIDEOS):
-    raise TypeError(
-        "Project type is {!r}, but have to be {!r}".format(project.type, sly.ProjectType.VIDEOS)
-    )
+    raise TypeError(f"Project type is {project.type!r}, but have to be {sly.ProjectType.VIDEOS!r}")
 
 meta_json = api.project.get_meta(project.id)
 meta = sly.ProjectMeta.from_json(meta_json)
 sly.logger.info("Project meta received...")
 if options == "annotated" and len(meta.obj_classes) == 0 and len(meta.tag_metas) == 0:
-    raise ValueError(
-        "Nothing to convert, there are no tags and classes in project {!r}".format(project.name)
-    )
+    raise ValueError(f"Nothing to convert, there are no tags and classes in project {project.name!r}")
 
 copy_annotations = os.getenv("modal.state.copyAnnotations", "true").lower() in ("true", "1", "t")
