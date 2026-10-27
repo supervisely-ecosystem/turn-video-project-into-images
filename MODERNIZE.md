@@ -1,7 +1,8 @@
 # Modernization notes: turn-video-project-into-images
 
 Mechanical move to the hardened image (`sly-app-standard` §1), not a rewrite. Base: `origin/master` @ bcb0f13
-(= published v3.0.7). Branch `local/modernize`, nothing committed.
+(= published v3.0.7). Branch `ecosystem-fixes-2026-10`: the move, then a second commit fixing three bugs
+found while verifying it (see "Bugs fixed after the move").
 
 ## Behaviour contract (kept)
 
@@ -13,14 +14,15 @@ at once in a thread and shuts the session down when done. All work is the SDK's 
 |---|---|---|
 | `Options` | `all` | `annotated` = only frames with figures (fails at start if the project has no classes and no tags) |
 | `sampleResultFrames` / `framesStep` | `false` / `10` | take every N-th of those frames |
-| `allDatasets`, `selectedDatasets` (names), `includeNestedDatasets` | `true`, `[]`, unset (= false) | see known issue 1 |
+| `allDatasets`, `selectedDatasets` (names or ids), `includeNestedDatasets` | `true`, `[]`, unset (= false) | `allDatasets=false` converts only the selected datasets (+ their nested ones with `includeNestedDatasets`); an empty selection = whole project. Fixed bug 1 |
 | `copyAnnotations` | `true` | frame figures → image labels (+ `object_id`/auto-track tags), video tags in range → image tags |
 | `run` | `true` | false = only build the widget, nothing runs (session stays open) |
 
 Output: new images project `<source>(images)` (`_001`… on conflict) **in the source project's workspace**,
 custom data `{is_sample, video_project_id, video_project_name}`; dataset tree = source datasets, each with one
 child dataset per video; images `<video>_frame_<index zero-padded>.png`. Workflow lineage: source project as
-input and (known issue 2) as output.
+input, the new images project as output (fixed bug 2). Any failure: error in the task log and task output
+(`set_output_error`), then the session shuts down (fixed bug 3).
 
 ## Changes
 
@@ -44,17 +46,37 @@ are byte-identical for both reference videos (h264 1080p and 4K) at steps 1/10/2
 path with `decord` in `dev_requirements.txt` is the fallback. CI: this repo has no `build-image` job
 (`release.yml` only calls `common.yml`), so nothing builds an unused per-app image.
 
-## Known issues kept (found while verifying, not fixed: out of scope for a mechanical move)
+## Bugs fixed after the move (present in published v3.0.7 too)
 
-1. **Dataset selection is ignored.** `main._init_options` sets `selected_datasets_ids` but never unchecks the
-   widget's "all datasets" box, so every top-level dataset is processed. Confirmed with the published v3.0.7
-   (case `selected-one-of-two-datasets`: `dsB` converted too). `includeNestedDatasets` does work.
-2. **Workflow output is the source project**, not the new one (`wf.workflow_output(api, selected_project_id)`).
-3. `if project is None` check comes after `project.name` (dead check). `batchSize` is unused.
+Found while verifying the move; fixed in a separate commit. Each has unit tests in
+`tests/unit/test_app_smoke.py` that fail on the old code.
+
+1. ~~**Dataset selection is ignored.**~~ **Fixed.** `main._init_options` set `selected_datasets_ids` but never
+   unchecked the widget's "all datasets" box, so every top-level dataset was processed (published v3.0.7, case
+   `selected-one-of-two-datasets`: `dsB` converted too). Now it sets the ids and unchecks the box. Names are
+   resolved over the whole dataset tree (`src/utils.resolve_dataset_ids`): a top-level dataset first, else a
+   nested one with a unique name, so a nested dataset can be selected on its own; ids are accepted too; an
+   unknown or ambiguous name fails at startup. `allDatasets=false` with an empty selection converts the whole
+   project (it used to as well, by accident). Names are only resolved when `allDatasets=false`.
+2. ~~**Workflow output is the source project.**~~ **Fixed.** `wf.workflow_output` now gets the created images
+   project, read from the widget's result preview (`Sampling.run()` returns nothing).
+3. ~~**No try/finally in `_run()`.**~~ **Fixed.** A failure in the conversion or lineage left the session
+   running. `_run()` now logs the error with traceback, sets it as the task output
+   (`api.task.set_output_error`, as `main-import` does; skipped without a task id, and its own failure is only
+   logged) and always calls `app.shutdown()`. The session then ends like a successful one, with the error in its
+   output.
+
+Still open (cosmetic): the `if project is None` check comes after `project.name` (dead check); `batchSize` is
+unused.
+
+Not verified on an instance yet (no Supervisely access in this pass): the three fixes are covered by unit tests
+only. The old-vs-new comparison under "Verification" predates them: cases with `allDatasets=false` can now
+differ from v3.0.7 by design. The contract test now expects only the selected datasets (cases `annotated-step5-selected`,
+`no-annotations-selected-with-nested`, `selected-one-of-two-datasets` select `ds0`/`dsA`).
 
 ## Verification (2026-10-25, dev.internal.supervisely.com, instance 6.18.7)
 
-- **Unit tests** 27 passed on Python 3.14 (venv) and inside `supervisely/base-py-sdk-hardened:6.74.34`
+- **Unit tests** 27 passed (48 after the bug fixes) on Python 3.14 (venv) and inside `supervisely/base-py-sdk-hardened:6.74.34`
   (3.14.7, amd64). `ruff check` / `ruff format --check` clean.
 - **Old vs new, same output.** Published v3.0.7 (`fleet.py run`, tasks 62701/62702/62714/62724) vs new code in the
   hardened image with `ENV=production` on a debug task (62716, port 8012). Compared per dataset path and image name:

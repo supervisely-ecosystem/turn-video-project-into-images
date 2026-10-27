@@ -4,7 +4,7 @@ import os
 import supervisely as sly
 from dotenv import load_dotenv
 
-from src.utils import strtobool
+from src.utils import resolve_dataset_ids, strtobool
 
 if sly.is_development():
     load_dotenv("local.env")
@@ -38,11 +38,13 @@ else:
     only_annotated = False
 
 selected_datasets = json.loads(os.environ["modal.state.selectedDatasets"].replace("'", '"'))
-selected_datasets_ids = []
-for dataset_name in selected_datasets:
-    dataset = api.dataset.get_info_by_name(project_id, dataset_name)
-    selected_datasets_ids.append(dataset.id)
 all_datasets = os.getenv("modal.state.allDatasets").lower() in ("true", "1", "t")
+if not all_datasets and not selected_datasets:
+    sly.logger.warning("No datasets selected, converting the whole project")
+    all_datasets = True
+selected_datasets_ids = []
+if not all_datasets:
+    selected_datasets_ids = resolve_dataset_ids(selected_datasets, api.dataset.get_list(project_id, recursive=True))
 include_nested_datasets = (os.getenv("modal.state.includeNestedDatasets") or "false").lower() in (
     "true",
     "1",

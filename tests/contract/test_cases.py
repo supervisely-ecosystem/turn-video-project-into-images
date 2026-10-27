@@ -8,6 +8,7 @@ creates its "<source>(images)" project next to the source. The source is only re
 """
 
 import glob
+import json
 import os
 import socket
 import subprocess
@@ -56,8 +57,18 @@ def expected_output(api, case):
     nested = (state.get("includeNestedDatasets") or "false").lower() == "true"
     copy_anns = state["copyAnnotations"].lower() == "true"
     paths, datasets = _paths(api, project_id)
-    # known issue kept: the dataset selection is ignored, every top-level dataset is processed
-    processed = [ds for ds in datasets.values() if ds.parent_id is None or nested]
+    selected = json.loads(state["selectedDatasets"].replace("'", '"'))
+    if state["allDatasets"].lower() == "true" or not selected:
+        roots = [ds for ds in datasets.values() if ds.parent_id is None]
+    else:  # by name, top-level first (the cases select top-level datasets)
+        roots = [next(ds for ds in datasets.values() if ds.name == name and ds.parent_id is None) for name in selected]
+    processed = list(roots)
+    if nested:
+        queue = list(roots)
+        while queue:
+            children = [ds for ds in datasets.values() if ds.parent_id == queue.pop().id]
+            processed += children
+            queue += children
     expected = {}
     for ds in processed:
         expected[paths[ds.id]] = {}
